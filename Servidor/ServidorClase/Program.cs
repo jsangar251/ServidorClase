@@ -1,4 +1,6 @@
 
+using ServidorClase.Database;
+
 namespace ServidorClase
 {
     public class Program
@@ -12,6 +14,8 @@ namespace ServidorClase
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+            builder.Services.AddSingleton<MyDataBase>();
 
             var app = builder.Build();
 
