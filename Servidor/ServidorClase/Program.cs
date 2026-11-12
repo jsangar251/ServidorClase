@@ -15,7 +15,7 @@ namespace ServidorClase
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-            builder.Services.AddSingleton<MyDataBase>();
+            builder.Services.AddScoped<MyDataBase>();
 
             var app = builder.Build();
 
@@ -31,6 +31,13 @@ namespace ServidorClase
 
 
             app.MapControllers();
+
+            // Asegurar que está creada la BBDD
+            using (IServiceScope scope = app.Services.CreateScope())
+            {
+                MyDataBase database = scope.ServiceProvider.GetRequiredService<MyDataBase>();
+                database.Database.EnsureCreated();
+            }
 
             app.Run();
         }

@@ -1,4 +1,4 @@
-﻿namespace ServidorClase.Database;
+﻿namespace ServidorClase.Database.Entities;
 
 public class Car
 {

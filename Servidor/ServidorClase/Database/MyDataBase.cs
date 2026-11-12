@@ -1,21 +1,17 @@
-﻿namespace ServidorClase.Database;
+﻿using Microsoft.EntityFrameworkCore;
+using ServidorClase.Database.Entities;
 
-public class MyDataBase
+namespace ServidorClase.Database;
+
+public class MyDataBase : DbContext
 {
-    private List<Car> cars;
+    private const string DATABASE_FILENAME = "coches.db";
 
-    public MyDataBase()
-    {
-        cars = new List<Car>();
-    }
+    public DbSet<Car> Cars { get; set; }
 
-    public IEnumerable<Car> GetAll()
+    protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        return cars;
-    }
-
-    public void Add(Car newCar)
-    {
-        cars.Add(newCar);
+        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        options.UseSqlite($"DataSource={baseDir}{DATABASE_FILENAME}");
     }
 }
