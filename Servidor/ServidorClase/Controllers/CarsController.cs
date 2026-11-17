@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using ServidorClase.Database;
 using ServidorClase.Database.Entities;
+using ServidorClase.Database.Repositories;
 
 namespace ServidorClase.Controllers;
 
@@ -9,31 +11,27 @@ namespace ServidorClase.Controllers;
 [ApiController]
 public class CarsController : ControllerBase
 {
-    private readonly MyDataBase _dataBase;
+    private readonly CarRepository _carRepository;
 
-    public CarsController(MyDataBase dataBase)
+    public CarsController(CarRepository carRepository)
     {
-        _dataBase = dataBase;
+        _carRepository = carRepository;
     }
 
     [HttpGet]
-    public IEnumerable<Car> GetAllCars()
+    public async Task<IEnumerable<Car>> GetAllCarsAsync()
     {
-        return _dataBase.Cars;
+        return await _carRepository.GetAllAsync();
     }
 
+    /*
     [HttpGet("byname/{name}")]
     public IEnumerable<Car> GetAllCarsByName(string name)
     {
         string lowerName = name.ToLower();
 
         return _dataBase.Cars
-            .Where(car => Equal(car, lowerName));
-    }
-
-    private bool Equal(Car car, string name)
-    {
-        return car.Name.ToLower().Contains(name);
+            .Where(car => car.Name.ToLower().Contains(name));
     }
 
     [HttpGet("{id}")]
@@ -50,11 +48,39 @@ public class CarsController : ControllerBase
 
         return Created($"cars/{newCar.Id}", newCar);
     }
-    /*
+
+    [HttpPut("{id}")]
+    public ActionResult<Car> UpdateCar(int id, [FromBody] Car newCar)
+    {
+        newCar.Id = id;
+        EntityEntry<Car> entry = _dataBase.Cars.Update(newCar);
+        _dataBase.SaveChanges();
+
+        return Ok(entry.Entity);
+    }
+
+    [HttpPut("{id}/name")]
+    public ActionResult<Car> UpdateCarName(int id, [FromBody] Car newCar)
+    {
+        Car? car = _dataBase.Cars.Find(id);
+
+        if (car is not null)
+        {
+            car.Name = newCar.Name;
+            _dataBase.Cars.Update(car);
+            _dataBase.SaveChanges();
+        }        
+
+        return NoContent();
+    }
+
+
     [HttpDelete("{id}")]
     public ActionResult DeleteCar(int id)
     {
-        cars.RemoveAll(car => car.Id == id);
+        Car car = new Car { Id = id, Name = string.Empty }; //;_dataBase.Cars.Find(id);
+        _dataBase.Cars.Remove(car);
+        _dataBase.SaveChanges();
 
         return NoContent();
     }*/

@@ -1,5 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
 using ServidorClase.Database;
+using ServidorClase.Database.Repositories;
 
 namespace ServidorClase
 {
@@ -15,7 +17,10 @@ namespace ServidorClase
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-            builder.Services.AddScoped<MyDataBase>();
+            builder.Services.AddDbContext<MyDataBase>(options =>
+                options.UseSqlite($"DataSource={AppDomain.CurrentDomain.BaseDirectory}coches.db"));
+
+            builder.Services.AddScoped<CarRepository>();
 
             var app = builder.Build();
 
@@ -36,7 +41,12 @@ namespace ServidorClase
             using (IServiceScope scope = app.Services.CreateScope())
             {
                 MyDataBase database = scope.ServiceProvider.GetRequiredService<MyDataBase>();
-                database.Database.EnsureCreated();
+                
+                if (database.Database.EnsureCreated())
+                {
+                    Seeder seeder = new Seeder(database);
+                    seeder.Seed();
+                }
             }
 
             app.Run();
