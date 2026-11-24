@@ -9,34 +9,26 @@ namespace ServidorClase.Controllers;
 [ApiController]
 public class UsersController : ControllerBase
 {
-    private readonly MyDataBase _dataBase;
+    private readonly UnitOfWork _unitOfWork;
 
-    public UsersController(MyDataBase dataBase)
+    public UsersController(UnitOfWork unitOfWork)
     {
-        _dataBase = dataBase;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpGet]
-    public IEnumerable<User> GetAllUsers()
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
-        return _dataBase.Users;
-    }
-
-    [HttpGet("byname/{name}")]
-    public IEnumerable<User> GetAllUsersByName(string name)
-    {
-        string lowerName = name.ToLower();
-
-        return _dataBase.Users
-            .Where(car => car.Name.ToLower().Contains(name));
+        return await _unitOfWork.UserRepository.GetAllAsync();
     }
 
     [HttpGet("{id}")]
-    public User? GetUser(int id)
+    public async Task<User?> GetUser(int id)
     {
-        return _dataBase.Users.Find(id);
+        return await _unitOfWork.UserRepository.GetByIdAsync(id);
     }
 
+    /*
     [HttpDelete("{id}")]
     public ActionResult DeleteUser(int id)
     {
@@ -48,9 +40,9 @@ public class UsersController : ControllerBase
             Password = string.Empty
         };
 
-        _dataBase.Users.Remove(user);
-        _dataBase.SaveChanges();
+        _userRepository.Users.Remove(user);
+        _userRepository.SaveChanges();
 
         return NoContent();
-    }
+    }*/
 }

@@ -11,29 +11,60 @@ namespace ServidorClase.Controllers;
 [ApiController]
 public class CarsController : ControllerBase
 {
-    private readonly CarRepository _carRepository;
+    private readonly UnitOfWork _unitOfWork;
 
-    public CarsController(CarRepository carRepository)
+    public CarsController(UnitOfWork unitOfWork)
     {
-        _carRepository = carRepository;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpGet]
     public async Task<IEnumerable<Car>> GetAllCarsAsync()
     {
-        return await _carRepository.GetAllAsync();
+        return await _unitOfWork.CarRepository.GetAllCarsWithOwnerAsync();
+    }
+
+    [HttpGet("{id}")]
+    public async Task<Car?> GetCar(int id)
+    {
+        return await _unitOfWork.CarRepository.GetByIdAsync(id);
+    }
+
+    [HttpGet("byname/{name}")]
+    public async Task<IEnumerable<Car>> GetAllCarsByNameAsync(string name)
+    {
+        return await _unitOfWork.CarRepository.GetAllCarsByNameAsync(name);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Car>> AddCarAsync([FromBody] Car newCar)
+    {
+        Car car = await _unitOfWork.CarRepository.InsertAsync(newCar);
+        await _unitOfWork.SaveAsync();
+
+        return Created($"cars/{car.Id}", car);
+    }
+
+    [HttpPut("{carId}/changeOwner/{nameOwner}")]
+    public async Task ChangeOwnerAsync(int carId, string nameOwner)
+    {
+        Car? car = await _unitOfWork.CarRepository.GetByIdAsync(carId);
+
+        if (car is not null)
+        {
+            User? newOwner = await _unitOfWork.UserRepository.GetUserByNameAsync(nameOwner);
+
+            if (newOwner is not null)
+            {
+                //car.Owner = newOwner;
+                car.OwnerId = newOwner.Id;
+            }
+        }
+
+        await _unitOfWork.SaveAsync();
     }
 
     /*
-    [HttpGet("byname/{name}")]
-    public IEnumerable<Car> GetAllCarsByName(string name)
-    {
-        string lowerName = name.ToLower();
-
-        return _dataBase.Cars
-            .Where(car => car.Name.ToLower().Contains(name));
-    }
-
     [HttpGet("{id}")]
     public Car? GetCar(int id)
     {
