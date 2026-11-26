@@ -2,6 +2,8 @@
 using ServidorClase.Database;
 using ServidorClase.Database.Entities;
 using ServidorClase.Database.Repositories;
+using ServidorClase.Dtos;
+using ServidorClase.Servicies;
 
 namespace ServidorClase.Controllers;
 
@@ -9,23 +11,55 @@ namespace ServidorClase.Controllers;
 [ApiController]
 public class UsersController : ControllerBase
 {
-    private readonly UnitOfWork _unitOfWork;
+    private readonly UserService _userService;
 
-    public UsersController(UnitOfWork unitOfWork)
+    public UsersController(UserService userService)
     {
-        _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpGet]
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        return await _unitOfWork.UserRepository.GetAllAsync();
+        IEnumerable<User> users = await _userService.GetAllUsersAsync();
+        List<UserDto> userDtos = [];
+
+        foreach (User user in users)
+        {
+            UserDto userDto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email
+            };
+
+            userDtos.Add(userDto);
+        }
+
+        return userDtos;
     }
 
     [HttpGet("{id}")]
-    public async Task<User?> GetUser(int id)
+    public async Task<UserDto?> GetUserAsync(int id)
     {
-        return await _unitOfWork.UserRepository.GetByIdAsync(id);
+        User? user = await _userService.GetUserAsync(id);
+        UserDto? userDto;
+
+        if (user is not null)
+        {
+            userDto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email
+            };
+        } 
+        else
+        {
+            userDto = null;
+        }
+
+        return userDto;
     }
 
     /*

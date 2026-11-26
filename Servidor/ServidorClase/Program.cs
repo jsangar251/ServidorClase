@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ServidorClase.Database;
 using ServidorClase.Database.Repositories;
+using ServidorClase.Servicies;
 using System.Text.Json.Serialization;
 
 namespace ServidorClase
@@ -23,6 +24,8 @@ namespace ServidorClase
                 options.UseSqlite($"DataSource={AppDomain.CurrentDomain.BaseDirectory}coches.db"));
 
             builder.Services.AddScoped<UnitOfWork>();
+            builder.Services.AddScoped<CarService>();
+            builder.Services.AddScoped<UserService>();
 
             var app = builder.Build();
 

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using ServidorClase.Database;
 using ServidorClase.Database.Entities;
 using ServidorClase.Database.Repositories;
+using ServidorClase.Servicies;
 
 namespace ServidorClase.Controllers;
 
@@ -11,57 +12,45 @@ namespace ServidorClase.Controllers;
 [ApiController]
 public class CarsController : ControllerBase
 {
-    private readonly UnitOfWork _unitOfWork;
+    private readonly CarService _carService;
 
-    public CarsController(UnitOfWork unitOfWork)
+    public CarsController(CarService carService)
     {
-        _unitOfWork = unitOfWork;
+        _carService = carService;
     }
 
     [HttpGet]
     public async Task<IEnumerable<Car>> GetAllCarsAsync()
     {
-        return await _unitOfWork.CarRepository.GetAllCarsWithOwnerAsync();
+        return await _carService.GetAllCarsAsync();
     }
 
     [HttpGet("{id}")]
-    public async Task<Car?> GetCar(int id)
+    public async Task<Car?> GetCarAsync(int id)
     {
-        return await _unitOfWork.CarRepository.GetByIdAsync(id);
+        return await _carService.GetCarAsync(id);
     }
 
     [HttpGet("byname/{name}")]
     public async Task<IEnumerable<Car>> GetAllCarsByNameAsync(string name)
     {
-        return await _unitOfWork.CarRepository.GetAllCarsByNameAsync(name);
+        return await _carService.GetAllCarsByNameAsync(name);
     }
 
     [HttpPost]
     public async Task<ActionResult<Car>> AddCarAsync([FromBody] Car newCar)
     {
-        Car car = await _unitOfWork.CarRepository.InsertAsync(newCar);
-        await _unitOfWork.SaveAsync();
+        Car car = await _carService.AddCarAsync(newCar);
 
         return Created($"cars/{car.Id}", car);
     }
 
     [HttpPut("{carId}/changeOwner/{nameOwner}")]
-    public async Task ChangeOwnerAsync(int carId, string nameOwner)
+    public async Task<ActionResult> ChangeOwnerAsync(int carId, string nameOwner)
     {
-        Car? car = await _unitOfWork.CarRepository.GetByIdAsync(carId);
+        await _carService.ChangeOwnerAsync(carId, nameOwner);
 
-        if (car is not null)
-        {
-            User? newOwner = await _unitOfWork.UserRepository.GetUserByNameAsync(nameOwner);
-
-            if (newOwner is not null)
-            {
-                //car.Owner = newOwner;
-                car.OwnerId = newOwner.Id;
-            }
-        }
-
-        await _unitOfWork.SaveAsync();
+        return Ok();
     }
 
     /*
